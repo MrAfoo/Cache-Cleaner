@@ -1,5 +1,5 @@
 {
-  "name": "clearcache",
+  "name": "@affanali4u/clearcache",
   "version": "1.0.0",
   "description": "CLI tool to clear temporary and junk files from your system (Windows, with Mac/Linux support planned)",
   "main": "bin/clearcache.js",

@@ -98,6 +98,7 @@ program
   .option('-y, --yes', 'Skip confirmation prompt')
   .option('--dry-run', 'Show what would be deleted without deleting anything')
   .option('--target <name>', 'Only clean a specific target (e.g. "temp" or "prefetch")')
+  .option('--verbose', 'Show full skipped file list with paths and raw error codes')
   .action(async (options) => {
     let targets = getTargets();
 
@@ -213,7 +214,7 @@ program
       aggregated.errors.push(...result.errors);
     }
 
-    logSummary(aggregated);
+    logSummary(aggregated, { verbose: options.verbose });
   });
 
 // ─── Parse ───────────────────────────────────────────────────────────────────
