@@ -40,7 +40,7 @@ function logSummary(summary, options = {}) {
 
   console.log();
   console.log(chalk.dim(`  ${SEPARATOR}`));
-  console.log(chalk.bold.underline('  Cleanup Summary'));
+  console.log('  ' + chalk.bold.underline('Cleanup Summary'));
   console.log();
   console.log(chalk.green(`  ✔ Files deleted:  ${summary.deleted}`));
   console.log(chalk.yellow(`  ⚠ Files skipped:  ${summary.skipped}`));
