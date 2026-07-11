@@ -16,7 +16,7 @@ const pkg = require('../package.json');
 const program = new Command();
 
 program
-  .name('clearcache')
+  .name('sys-cache-clean')
   .description('CLI tool to clear temporary and junk files from your system')
   .version(pkg.version);
 
@@ -113,7 +113,7 @@ program
         (t) => t.name.toLowerCase() === options.target.toLowerCase()
       );
       if (!match) {
-        logError(`Unknown target "${options.target}". Use "clearcache list" to see available targets.`);
+        logError(`Unknown target "${options.target}". Use "sys-cache-clean list" to see available targets.`);
         process.exitCode = 1;
         return;
       }

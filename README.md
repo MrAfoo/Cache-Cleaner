@@ -1,10 +1,10 @@
-# clearcache
+# sys-cache-clean
 
 > CLI tool to clear temporary and junk files from your Windows system.
 
 Clears files from known safe locations — **Temp folders** and **Windows Prefetch** — with full control over what gets deleted. Built with extensibility for Mac/Linux support in the future.
 
-[![npm version](https://img.shields.io/npm/v/clearcache.svg)](https://www.npmjs.com/package/clearcache)
+[![npm version](https://img.shields.io/npm/v/sys-cache-clean.svg)](https://www.npmjs.com/package/sys-cache-clean)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 ## Requirements
@@ -15,24 +15,24 @@ Clears files from known safe locations — **Temp folders** and **Windows Prefet
 ## Installation
 
 ```bash
-npm install -g clearcache
+npm install -g sys-cache-clean
 ```
 
 Or run directly from the project folder:
 
 ```bash
 npm install
-node bin/clearcache.js --help
+node bin/sys-cache-clean.js --help
 ```
 
 ## Commands
 
-### `clearcache list`
+### `sys-cache-clean list`
 
 Lists all known target cache folders without scanning them.
 
 ```
-$ clearcache list
+$ sys-cache-clean list
 
 Cache Targets
 
@@ -40,12 +40,12 @@ Cache Targets
   prefetch     C:\Windows\Prefetch
 ```
 
-### `clearcache scan`
+### `sys-cache-clean scan`
 
 Read-only scan. Shows file count and total size for each target folder. **Does not delete anything.**
 
 ```
-$ clearcache scan
+$ sys-cache-clean scan
 
 Scan Results
 
@@ -56,12 +56,12 @@ Scan Results
   Total: 1,247 files, 523.41 MB
 ```
 
-### `clearcache clean`
+### `sys-cache-clean clean`
 
 Scans all targets, shows a summary, asks for confirmation, then deletes files.
 
 ```
-$ clearcache clean
+$ sys-cache-clean clean
 
 Scanning targets...
 
@@ -84,32 +84,32 @@ Scanning targets...
 
 ```bash
 # Skip confirmation
-clearcache clean --yes
+sys-cache-clean clean --yes
 
 # Preview what would be deleted
-clearcache clean --dry-run
+sys-cache-clean clean --dry-run
 
 # Clean only the temp folder
-clearcache clean --target temp
+sys-cache-clean clean --target temp
 
 # Clean prefetch (requires Administrator)
-clearcache clean --target prefetch
+sys-cache-clean clean --target prefetch
 ```
 
-### `clearcache --version`
+### `sys-cache-clean --version`
 
 Prints the current version.
 
-### `clearcache --help`
+### `sys-cache-clean --help`
 
 Shows help text with all available commands and options.
 
 ## Prefetch & Administrator
 
-The Windows **Prefetch** folder (`C:\Windows\Prefetch`) requires Administrator privileges to access. If you run `clearcache` without elevation, Prefetch will be **skipped automatically** with a warning message. To include it:
+The Windows **Prefetch** folder (`C:\Windows\Prefetch`) requires Administrator privileges to access. If you run `sys-cache-clean` without elevation, Prefetch will be **skipped automatically** with a warning message. To include it:
 
 1. Open **Command Prompt** or **PowerShell** as Administrator
-2. Run `clearcache clean`
+2. Run `sys-cache-clean clean`
 
 ## Targets
 
@@ -124,9 +124,9 @@ The tool **never** touches folders outside this defined list.
 ## Project Structure
 
 ```
-clearcache/
+sys-cache-clean/
 ├── bin/
-│   └── clearcache.js    # CLI entry point (commander)
+│   └── sys-cache-clean.js    # CLI entry point (commander)
 ├── src/
 │   ├── targets.js       # OS-specific target definitions
 │   ├── scanner.js       # Recursive file scanner
@@ -155,6 +155,6 @@ MIT
 
 ## Links
 
-- [npm package](https://www.npmjs.com/package/clearcache)
+- [npm package](https://www.npmjs.com/package/sys-cache-clean)
 - [GitHub repo](https://github.com/MrAfoo/Cache-Cleaner)
 - [Issues](https://github.com/MrAfoo/Cache-Cleaner/issues)
