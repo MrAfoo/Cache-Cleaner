@@ -1,6 +1,6 @@
 {
   "name": "sys-cache-clear",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "CLI tool to clear temporary and junk files from your system (Windows, with Mac/Linux support planned)",
   "main": "bin/sys-cache-clear.js",
   "bin": {
