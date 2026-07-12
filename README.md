@@ -4,7 +4,7 @@ Give a Star⭐ if you like it
 
 > CLI tool to clear temporary and junk files from your Windows system.
 
-Clears files from known safe locations — **Temp folders** and **Windows Prefetch** — with full control over what gets deleted. Built with extensibility for Mac/Linux support in the future.
+Clears files from known safe locations — **Temp folders**, **Windows Prefetch**, and the **Recycle Bin** — with full control over what gets deleted. Built with extensibility for Mac/Linux support in the future.
 
 [![npm version](https://img.shields.io/npm/v/sys-cache-clear.svg)](https://www.npmjs.com/package/sys-cache-clear)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
@@ -38,8 +38,9 @@ $ sys-cache-clear list
 
 Cache Targets
 
-  temp         C:\Users\You\AppData\Local\Temp
-  prefetch     C:\Windows\Prefetch
+  temp           C:\Users\You\AppData\Local\Temp
+  prefetch       C:\Windows\Prefetch
+  recyclebin     Windows Recycle Bin
 ```
 
 ### `sys-cache-clear scan`
@@ -106,6 +107,9 @@ sys-cache-clear clean --exclude "*.exe" --exclude "antigravity*"
 
 # Combine flags: dry-run with exclusions
 sys-cache-clear clean --dry-run --exclude "*.log"
+
+# Empty only the Recycle Bin
+sys-cache-clear clean --target recyclebin
 ```
 
 ### `sys-cache-clear --version`
@@ -130,6 +134,7 @@ The Windows **Prefetch** folder (`C:\Windows\Prefetch`) requires Administrator p
 | `temp` | `%TEMP%` | User's temp folder |
 | `tmp` | `%TMP%` | Only included if different from `%TEMP%` |
 | `prefetch` | `%WINDIR%\Prefetch` | Requires admin |
+| `recyclebin` | Windows Recycle Bin | Emptied via PowerShell |
 
 The tool **never** touches folders outside this defined list.
 

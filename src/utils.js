@@ -1,6 +1,7 @@
 'use strict';
 
 const { minimatch } = require('minimatch');
+const { execSync } = require('child_process');
 
 function formatBytes(bytes) {
   if (bytes === 0) return '0 Bytes';
@@ -17,8 +18,6 @@ async function isAdmin() {
   if (require('os').platform() !== 'win32') {
     return process.getuid && process.getuid() === 0;
   }
-
-  const { execSync } = require('child_process');
 
   try {
     execSync('net session', { stdio: 'ignore' });
@@ -40,4 +39,12 @@ function matchesExclude(filename, patterns) {
   return false;
 }
 
-module.exports = { formatBytes, isAdmin, matchesExclude };
+function runPowerShell(script) {
+  const encoded = Buffer.from(script, 'utf16le').toString('base64');
+  return execSync(`powershell -NoProfile -EncodedCommand ${encoded}`, {
+    encoding: 'utf8',
+    stdio: ['pipe', 'pipe', 'ignore'],
+  }).trim();
+}
+
+module.exports = { formatBytes, isAdmin, matchesExclude, runPowerShell };

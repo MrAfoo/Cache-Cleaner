@@ -2,7 +2,7 @@
 
 const fsp = require('fs').promises;
 const path = require('path');
-const { matchesExclude } = require('./utils');
+const { matchesExclude, runPowerShell } = require('./utils');
 
 async function cleanFolder(files, excludePatterns = []) {
   const result = {
@@ -35,4 +35,13 @@ async function cleanFolder(files, excludePatterns = []) {
   return result;
 }
 
-module.exports = { cleanFolder };
+function emptyRecycleBin() {
+  try {
+    runPowerShell('Clear-RecycleBin -Force -ErrorAction SilentlyContinue');
+    return { success: true, error: null };
+  } catch (err) {
+    return { success: false, error: err.message };
+  }
+}
+
+module.exports = { cleanFolder, emptyRecycleBin };

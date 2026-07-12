@@ -3,7 +3,7 @@
 const fs = require('fs');
 const fsp = fs.promises;
 const path = require('path');
-const { matchesExclude } = require('./utils');
+const { matchesExclude, runPowerShell } = require('./utils');
 
 async function scanFolder(folderPath, excludePatterns = []) {
   const result = {
@@ -51,4 +51,27 @@ async function walk(dir, result, excludePatterns) {
   }
 }
 
-module.exports = { scanFolder };
+function getRecycleBinInfo() {
+  try {
+    const psScript = [
+      '$shell = New-Object -ComObject Shell.Application',
+      '$rb = $shell.NameSpace(10)',
+      '$items = $rb.Items()',
+      '$count = $items.Count',
+      '$size = 0',
+      'foreach($item in $items) { $size += $item.Size }',
+      'Write-Output ([string]$count + [char]124 + [string]$size)',
+    ].join('; ');
+
+    const output = runPowerShell(psScript);
+    const [countStr, sizeStr] = output.split('|');
+    const fileCount = parseInt(countStr, 10) || 0;
+    const totalBytes = parseInt(sizeStr, 10) || 0;
+
+    return { fileCount, totalBytes };
+  } catch {
+    return { fileCount: 0, totalBytes: 0 };
+  }
+}
+
+module.exports = { scanFolder, getRecycleBinInfo };

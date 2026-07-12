@@ -30,6 +30,12 @@ function getTargets() {
       });
     }
 
+    targets.push({
+      name: 'recyclebin',
+      path: 'Windows Recycle Bin',
+      type: 'recyclebin',
+    });
+
     return targets;
   }
 
