@@ -3,39 +3,27 @@
 const fs = require('fs');
 const fsp = fs.promises;
 const path = require('path');
+const { matchesExclude } = require('./utils');
 
-/**
- * Recursively scans a folder and collects information about all files
- * without deleting anything.
- *
- * @param {string} folderPath - Absolute path to the folder to scan.
- * @returns {Promise<{ fileCount: number, totalBytes: number, files: { path: string, size: number }[] }>}
- */
-async function scanFolder(folderPath) {
+async function scanFolder(folderPath, excludePatterns = []) {
   const result = {
     fileCount: 0,
     totalBytes: 0,
     files: [],
+    excluded: [],
   };
 
-  await walk(folderPath, result);
+  await walk(folderPath, result, excludePatterns);
 
   return result;
 }
 
-/**
- * Internal recursive directory walker.
- *
- * @param {string} dir - Current directory path.
- * @param {{ fileCount: number, totalBytes: number, files: { path: string, size: number }[] }} result - Accumulator object.
- */
-async function walk(dir, result) {
+async function walk(dir, result, excludePatterns) {
   let entries;
 
   try {
     entries = await fsp.readdir(dir, { withFileTypes: true });
   } catch {
-    // Directory might be inaccessible — skip silently
     return;
   }
 
@@ -44,15 +32,21 @@ async function walk(dir, result) {
 
     try {
       if (entry.isDirectory()) {
-        await walk(fullPath, result);
+        await walk(fullPath, result, excludePatterns);
       } else if (entry.isFile()) {
         const stat = await fsp.stat(fullPath);
+
+        if (excludePatterns.length > 0 && matchesExclude(entry.name, excludePatterns)) {
+          result.excluded.push({ path: fullPath, size: stat.size });
+          continue;
+        }
+
         result.fileCount++;
         result.totalBytes += stat.size;
         result.files.push({ path: fullPath, size: stat.size });
       }
     } catch {
-      // Individual file stat failures are non-fatal — skip
+      // skip
     }
   }
 }

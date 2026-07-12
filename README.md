@@ -81,6 +81,10 @@ Scanning targets...
 | `--yes`, `-y` | Skip the confirmation prompt |
 | `--dry-run` | Show exactly what would be deleted, but don't delete anything |
 | `--target <name>` | Only clean a specific target (e.g. `temp` or `prefetch`) |
+| `--exclude <pattern>` | Exclude files matching a glob pattern (repeatable) |
+| `--verbose` | Show full skipped file list with paths and raw error codes |
+
+> **Glob patterns:** `--exclude` uses standard glob syntax. `*` matches any sequence of characters. Patterns are matched against filenames (not full paths). Examples: `"*.exe"`, `"antigravity*"`, `"*.log"`.
 
 ### Examples
 
@@ -96,6 +100,12 @@ sys-cache-clear clean --target temp
 
 # Clean prefetch (requires Administrator)
 sys-cache-clear clean --target prefetch
+
+# Exclude specific files/patterns from deletion
+sys-cache-clear clean --exclude "*.exe" --exclude "antigravity*"
+
+# Combine flags: dry-run with exclusions
+sys-cache-clear clean --dry-run --exclude "*.log"
 ```
 
 ### `sys-cache-clear --version`

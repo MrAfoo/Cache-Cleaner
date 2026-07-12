@@ -20,8 +20,6 @@ program
   .description('CLI tool to clear temporary and junk files from your system')
   .version(pkg.version);
 
-// ─── list ────────────────────────────────────────────────────────────────────
-
 program
   .command('list')
   .description('List all known target cache folders without scanning them')
@@ -41,8 +39,6 @@ program
     }
     console.log();
   });
-
-// ─── scan ────────────────────────────────────────────────────────────────────
 
 program
   .command('scan')
@@ -65,7 +61,6 @@ program
     let grandTotalBytes = 0;
 
     for (const target of targets) {
-      // Skip prefetch if not admin
       if (target.name === 'prefetch' && !admin) {
         logWarning(`Skipping "${target.name}" — requires Administrator privileges.`);
         logInfo('Re-run this command as Administrator to include Prefetch.');
@@ -90,7 +85,9 @@ program
     console.log();
   });
 
-// ─── clean ───────────────────────────────────────────────────────────────────
+function collectExclude(value, previous) {
+  return previous.concat([value]);
+}
 
 program
   .command('clean')
@@ -99,6 +96,7 @@ program
   .option('--dry-run', 'Show what would be deleted without deleting anything')
   .option('--target <name>', 'Only clean a specific target (e.g. "temp" or "prefetch")')
   .option('--verbose', 'Show full skipped file list with paths and raw error codes')
+  .option('--exclude <pattern>', 'Exclude files matching a glob pattern (repeatable)', collectExclude, [])
   .action(async (options) => {
     let targets = getTargets();
 
@@ -107,7 +105,6 @@ program
       return;
     }
 
-    // Filter to a specific target if --target is provided
     if (options.target) {
       const match = targets.find(
         (t) => t.name.toLowerCase() === options.target.toLowerCase()
@@ -121,18 +118,20 @@ program
     }
 
     const admin = await isAdmin();
+    const excludePatterns = options.exclude || [];
 
-    // ── Phase 1: Scan ──────────────────────────────────────────────────────
+    if (excludePatterns.length > 0) {
+      logInfo(`Exclude patterns: ${excludePatterns.map(p => `"${p}"`).join(', ')}`);
+    }
 
     console.log();
     console.log(chalk.bold.underline('Scanning targets...'));
     console.log();
 
-    /** @type {{ target: { name: string, path: string }, scan: { fileCount: number, totalBytes: number, files: { path: string, size: number }[] } }[]} */
     const scanResults = [];
+    let totalExcluded = 0;
 
     for (const target of targets) {
-      // Admin check for prefetch
       if (target.name === 'prefetch' && !admin) {
         logWarning(`Skipping "${target.name}" — requires Administrator privileges.`);
         logInfo('Re-run this command as Administrator to include Prefetch.');
@@ -142,8 +141,16 @@ program
       const spinner = ora({ text: `Scanning ${target.name}...`, spinner: 'dots' }).start();
 
       try {
-        const result = await scanFolder(target.path);
-        spinner.succeed(`${target.name} — ${result.fileCount} files, ${formatBytes(result.totalBytes)}`);
+        const result = await scanFolder(target.path, excludePatterns);
+        const excludedCount = result.excluded.length;
+        totalExcluded += excludedCount;
+
+        let msg = `${target.name} — ${result.fileCount} files, ${formatBytes(result.totalBytes)}`;
+        if (excludedCount > 0) {
+          msg += chalk.magenta(` (${excludedCount} excluded)`);
+        }
+        spinner.succeed(msg);
+
         scanResults.push({ target, scan: result });
       } catch (err) {
         spinner.fail(`Failed to scan ${target.name}: ${err.message}`);
@@ -154,15 +161,21 @@ program
     const totalBytes = scanResults.reduce((sum, r) => sum + r.scan.totalBytes, 0);
 
     if (totalFiles === 0) {
-      logSuccess('Nothing to clean — all target folders are empty.');
+      if (totalExcluded > 0) {
+        logInfo(`All files matched --exclude patterns (${totalExcluded} excluded). Nothing to clean.`);
+      } else {
+        logSuccess('Nothing to clean — all target folders are empty.');
+      }
       return;
     }
 
     console.log();
-    console.log(chalk.bold(`  Found ${totalFiles} files (${formatBytes(totalBytes)}) across ${scanResults.length} target(s).`));
+    let foundMsg = `  Found ${totalFiles} files (${formatBytes(totalBytes)}) across ${scanResults.length} target(s).`;
+    if (totalExcluded > 0) {
+      foundMsg += chalk.magenta(` [${totalExcluded} excluded by patterns]`);
+    }
+    console.log(chalk.bold(foundMsg));
     console.log();
-
-    // ── Phase 2: Dry-run ───────────────────────────────────────────────────
 
     if (options.dryRun) {
       console.log(chalk.bold.underline('Dry Run — files that would be deleted:'));
@@ -173,6 +186,13 @@ program
         for (const file of scan.files) {
           console.log(chalk.dim(`    ${file.path}  (${formatBytes(file.size)})`));
         }
+
+        if (scan.excluded.length > 0) {
+          console.log(chalk.magenta(`  [${target.name} — excluded by patterns]`));
+          for (const file of scan.excluded) {
+            console.log(chalk.magenta.dim(`    ⊘ ${file.path}  (${formatBytes(file.size)})`));
+          }
+        }
       }
 
       console.log();
@@ -180,23 +200,22 @@ program
       return;
     }
 
-    // ── Phase 3: Confirm ───────────────────────────────────────────────────
-
     if (!options.yes) {
-      const confirmed = await confirmPrompt(
-        `Delete ${totalFiles} files (${formatBytes(totalBytes)}) from ${scanResults.length} target(s)?`
-      );
+      let promptMsg = `Delete ${totalFiles} files (${formatBytes(totalBytes)}) from ${scanResults.length} target(s)?`;
+      if (totalExcluded > 0) {
+        promptMsg += ` [excluding ${totalExcluded} matched patterns]`;
+      }
+      const confirmed = await confirmPrompt(promptMsg);
       if (!confirmed) {
         logInfo('Cleanup cancelled.');
         return;
       }
     }
 
-    // ── Phase 4: Clean ─────────────────────────────────────────────────────
-
     const aggregated = {
       deleted: 0,
       skipped: 0,
+      excluded: 0,
       bytesFreed: 0,
       errors: [],
     };
@@ -204,19 +223,20 @@ program
     for (const { target, scan } of scanResults) {
       const spinner = ora({ text: `Cleaning ${target.name}...`, spinner: 'dots' }).start();
 
-      const result = await cleanFolder(scan.files);
+      const result = await cleanFolder(scan.files, excludePatterns);
 
       spinner.succeed(`${target.name} — ${result.deleted} deleted, ${result.skipped} skipped`);
 
       aggregated.deleted += result.deleted;
       aggregated.skipped += result.skipped;
+      aggregated.excluded += result.excluded;
       aggregated.bytesFreed += result.bytesFreed;
       aggregated.errors.push(...result.errors);
     }
 
+    aggregated.excluded += totalExcluded;
+
     logSummary(aggregated, { verbose: options.verbose });
   });
-
-// ─── Parse ───────────────────────────────────────────────────────────────────
 
 program.parse(process.argv);

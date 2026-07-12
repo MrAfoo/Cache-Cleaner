@@ -1,11 +1,7 @@
 'use strict';
 
-/**
- * Converts a byte count to a human-readable string (KB, MB, GB).
- *
- * @param {number} bytes - The number of bytes.
- * @returns {string} Human-readable size string.
- */
+const { minimatch } = require('minimatch');
+
 function formatBytes(bytes) {
   if (bytes === 0) return '0 Bytes';
 
@@ -17,17 +13,8 @@ function formatBytes(bytes) {
   return `${value.toFixed(2)} ${units[i]}`;
 }
 
-/**
- * Checks whether the current process is running with Administrator
- * privileges on Windows.
- *
- * Uses `net session` — it succeeds only under an elevated prompt.
- *
- * @returns {Promise<boolean>} true if running as admin, false otherwise.
- */
 async function isAdmin() {
   if (require('os').platform() !== 'win32') {
-    // On non-Windows, check for root (uid 0)
     return process.getuid && process.getuid() === 0;
   }
 
@@ -41,4 +28,16 @@ async function isAdmin() {
   }
 }
 
-module.exports = { formatBytes, isAdmin };
+function matchesExclude(filename, patterns) {
+  if (!patterns || patterns.length === 0) return false;
+
+  for (const pattern of patterns) {
+    if (minimatch(filename, pattern, { nocase: true })) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+module.exports = { formatBytes, isAdmin, matchesExclude };
