@@ -1,3 +1,5 @@
+Give a Star⭐ if you like it
+
 # System Cache Cleaner
 
 > CLI tool to clear temporary and junk files from your Windows system.
