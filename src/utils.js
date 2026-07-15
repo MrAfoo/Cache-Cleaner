@@ -46,5 +46,8 @@ function runPowerShell(script) {
     stdio: ['pipe', 'pipe', 'ignore'],
   }).trim();
 }
+function checkPlatformSupport() {
+  return process.platform === 'win32';
+}
 
-module.exports = { formatBytes, isAdmin, matchesExclude, runPowerShell };
+module.exports = { formatBytes, isAdmin, matchesExclude, runPowerShell, checkPlatformSupport };

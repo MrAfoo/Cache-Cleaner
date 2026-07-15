@@ -6,13 +6,15 @@ Give a Star⭐ if you like it
 
 Clears files from known safe locations — **Temp folders**, **Windows Prefetch**, and the **Recycle Bin** — with full control over what gets deleted. Built with extensibility for Mac/Linux support in the future.
 
+> **Note:** Currently supports Windows only. Linux/Mac support is planned.
+
 [![npm version](https://img.shields.io/npm/v/sys-cache-clear.svg)](https://www.npmjs.com/package/sys-cache-clear)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 ## Requirements
 
 - Node.js 16 or higher
-- Windows OS (Mac/Linux support planned)
+- OS: Windows only (Linux/Mac coming in a future release)
 
 ## Installation
 

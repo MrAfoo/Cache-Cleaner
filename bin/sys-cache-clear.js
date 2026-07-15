@@ -9,7 +9,7 @@ const { scanFolder, getRecycleBinInfo } = require('../src/scanner');
 const { cleanFolder, emptyRecycleBin } = require('../src/cleaner');
 const { confirmPrompt } = require('../src/prompt');
 const { logSummary, logScanResult, logInfo, logWarning, logError, logSuccess } = require('../src/logger');
-const { formatBytes, isAdmin } = require('../src/utils');
+const { formatBytes, isAdmin, checkPlatformSupport } = require('../src/utils');
 
 const pkg = require('../package.json');
 
@@ -287,5 +287,16 @@ program
 
     logSummary(aggregated, { verbose: options.verbose });
   });
+
+if (!checkPlatformSupport()) {
+  console.log();
+  console.log(chalk.yellow('  ⚠ sys-cache-clear currently only supports Windows.'));
+  console.log();
+  console.log(chalk.dim('  Linux/Mac support is planned for a future release.'));
+  console.log(chalk.dim('  Star the repo to get notified when it\'s ready:'));
+  console.log(chalk.cyan('  https://github.com/MrAfoo/Cache-Cleaner'));
+  console.log();
+  process.exit(0);
+}
 
 program.parse(process.argv);
