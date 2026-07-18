@@ -122,6 +122,28 @@ Prints the current version.
 
 Shows help text with all available commands and options.
 
+## Scheduling (Windows Only)
+
+You can set up `sys-cache-clear` to run automatically in the background using Windows Task Scheduler. Automated runs happen at 3:00 AM and will automatically use `--yes` so no prompts are shown.
+
+### `sys-cache-clear schedule --daily`
+Schedules the cleaner to run every day at 3:00 AM.
+
+### `sys-cache-clear schedule --weekly`
+Schedules the cleaner to run every Sunday at 3:00 AM.
+
+### `sys-cache-clear schedule --status`
+Shows if a task is currently scheduled, its frequency, and when it will run next.
+
+### `sys-cache-clear schedule --remove`
+Removes the scheduled task.
+
+> **Administrator Privileges:**
+> You do NOT need Administrator privileges to create a basic scheduled task. However, if you create the task without Administrator rights, the task will not be able to clean the **Prefetch** folder. To ensure Prefetch is cleaned during scheduled runs, open an elevated terminal (Run as Administrator) and run `sys-cache-clear schedule --daily`.
+
+> **Logs:**
+> Since scheduled tasks run silently in the background, you can check what was deleted by opening the log file located at: `%APPDATA%\sys-cache-clear\schedule.log`
+
 ## Prefetch & Administrator
 
 The Windows **Prefetch** folder (`C:\Windows\Prefetch`) requires Administrator privileges to access. If you run `sys-cache-clear` without elevation, Prefetch will be **skipped automatically** with a warning message. To include it:

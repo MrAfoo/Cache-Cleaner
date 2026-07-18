@@ -7,6 +7,7 @@ const chalk = require('chalk');
 const { getTargets } = require('../src/targets');
 const { scanFolder, getRecycleBinInfo } = require('../src/scanner');
 const { cleanFolder, emptyRecycleBin } = require('../src/cleaner');
+const { createScheduledTask, removeScheduledTask, getTaskStatus } = require('../src/scheduler');
 const { confirmPrompt } = require('../src/prompt');
 const { logSummary, logScanResult, logInfo, logWarning, logError, logSuccess } = require('../src/logger');
 const { formatBytes, isAdmin, checkPlatformSupport } = require('../src/utils');
@@ -286,6 +287,63 @@ program
     aggregated.excluded += totalExcluded;
 
     logSummary(aggregated, { verbose: options.verbose });
+  });
+
+program
+  .command('schedule')
+  .description('Set up automatic recurring runs using Windows Task Scheduler')
+  .option('--daily', 'Schedule to run daily at 3:00 AM')
+  .option('--weekly', 'Schedule to run weekly on Sunday at 3:00 AM')
+  .option('--remove', 'Remove any existing scheduled task')
+  .option('--status', 'Show if a task is currently scheduled')
+  .action(async (options) => {
+    if (options.status) {
+      const status = getTaskStatus();
+      if (status.exists) {
+        logInfo(`A task is scheduled. Frequency: ${status.schedule}. Next run: ${status.nextRun}`);
+        console.log(chalk.dim(`  Run 'sys-cache-clear schedule --remove' to cancel.`));
+      } else {
+        logInfo('No task is currently scheduled.');
+      }
+      return;
+    }
+
+    if (options.remove) {
+      const result = removeScheduledTask();
+      if (result.success) {
+        logSuccess('Scheduled task removed successfully.');
+      } else {
+        logWarning('No scheduled task found to remove.');
+      }
+      return;
+    }
+
+    const frequency = options.daily ? 'daily' : options.weekly ? 'weekly' : null;
+
+    if (!frequency) {
+      logError('You must specify --daily, --weekly, --remove, or --status.');
+      return;
+    }
+
+    const spinner = ora({ text: 'Setting up scheduled task...', spinner: 'dots' }).start();
+    const result = await createScheduledTask(frequency);
+
+    if (result.success) {
+      spinner.succeed(`Scheduled ${frequency} cleanup at 3:00 AM`);
+      console.log(chalk.dim(`  Log file: ${result.logPath}`));
+      if (!result.elevated) {
+        console.log(chalk.yellow(`  ⚠ Task created without Administrator privileges.`));
+        console.log(chalk.yellow(`  Prefetch will NOT be cleaned during automatic runs.`));
+        console.log(chalk.yellow(`  To include Prefetch, run this command from an elevated terminal.`));
+      } else {
+        console.log(chalk.green(`  ✔ Task created with Administrator privileges. Prefetch will be cleaned.`));
+      }
+      console.log();
+      console.log(chalk.dim(`  Run 'sys-cache-clear schedule --status' anytime to check.`));
+      console.log(chalk.dim(`  Run 'sys-cache-clear schedule --remove' to cancel.`));
+    } else {
+      spinner.fail(`Failed to create scheduled task: ${result.error}`);
+    }
   });
 
 if (!checkPlatformSupport()) {
