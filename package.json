@@ -25,7 +25,8 @@
     "commander": "^12.1.0",
     "inquirer": "^8.2.6",
     "minimatch": "^10.2.5",
-    "ora": "^5.4.1"
+    "ora": "^5.4.1",
+    "semver": "^7.8.5"
   },
   "os": [
     "win32"

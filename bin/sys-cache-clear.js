@@ -11,8 +11,11 @@ const { createScheduledTask, removeScheduledTask, getTaskStatus } = require('../
 const { confirmPrompt } = require('../src/prompt');
 const { logSummary, logScanResult, logInfo, logWarning, logError, logSuccess } = require('../src/logger');
 const { formatBytes, isAdmin, checkPlatformSupport } = require('../src/utils');
+const { checkForUpdate, printUpdateNotice } = require('../src/updateChecker');
 
 const pkg = require('../package.json');
+
+const updateCheckPromise = checkForUpdate();
 
 const program = new Command();
 
@@ -357,4 +360,11 @@ if (!checkPlatformSupport()) {
   process.exit(0);
 }
 
-program.parse(process.argv);
+program.hook('postAction', async () => {
+  const updateResult = await updateCheckPromise;
+  printUpdateNotice(updateResult);
+});
+
+program.parseAsync(process.argv).catch(() => {
+  process.exit(1);
+});

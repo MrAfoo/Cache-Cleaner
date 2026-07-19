@@ -151,6 +151,10 @@ The Windows **Prefetch** folder (`C:\Windows\Prefetch`) requires Administrator p
 1. Open **Command Prompt** or **PowerShell** as Administrator
 2. Run `sys-cache-clear clean`
 
+## Staying Updated
+
+`sys-cache-clear` checks for updates automatically and will notify you when a new version is available on npm.
+
 ## Targets
 
 | Name | Path | Notes |
